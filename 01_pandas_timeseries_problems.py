@@ -50,7 +50,7 @@ df_pytimetk = expedia_df[['site_name', 'date_time', 'cnt', 'is_booking']] \
 # SPEED COMPARISON ----
 
 # Pandas
-%%timeit -n 10
+## %%timeit -n 10
 
 df_pandas = expedia_df[['site_name', 'date_time', 'cnt', 'is_booking']] \
     .set_index('date_time') \
@@ -63,7 +63,7 @@ df_pandas.columns = ['_'.join(col).strip() for col in df_pandas.columns.values]
 df_pandas.reset_index(inplace = True)
 
 # Polars Engine (Pytimetk)
-%%timeit -n 10
+## %%timeit -n 10
 
 df_pytimetk = expedia_df[['site_name', 'date_time', 'cnt', 'is_booking']] \
     .groupby('site_name') \
@@ -78,18 +78,35 @@ df_pytimetk = expedia_df[['site_name', 'date_time', 'cnt', 'is_booking']] \
 
 # PROBLEM 2: PANDAS & MATPLOTLIB IS CODE-HEAVY AND UGLY
 
-# 
+# 2.1 UGLY
+
+# Sample data
+dates = pd.date_range(start='2023-01-01', periods=3, freq='D')
+customers = ['Customer A', 'Customer B']
+products = ['Product 1', 'Product 2']
+
+# MultiIndex creation
+index = pd.MultiIndex.from_product([dates, customers, products], names=['Date', 'Customer', 'Product'])
+
+# Sample sales data using random numbers
+np.random.seed(42)  # for reproducibility
+sales_data = np.random.randint(10, 200, size=len(index))
+
+# Create the DataFrame
+df = pd.DataFrame({'Sales': sales_data}, index=index)
 
 df.plot()
 
-# Problem 3 - T
+# Pytimetk Way:
+df \
+    .reset_index() \
+    .groupby(["Customer", "Product"]) \
+    .plot_timeseries("Date", "Sales", smooth = False, facet_ncol = 2)
 
+# 2.2 CODE-HEAVY
 
+# Matplotlib way: 16 lines of code, 2 for-loops, 1 if-statement, 1 list comprehension, 1 dictionary comprehension, 1 groupby, 1 resample, 1 agg, 1 reset_index
 
-
-
-
-# Plotting
 # Calculate the number of rows needed based on unique sites and desired number of columns
 num_sites = len(df_pandas['site_name'].unique())
 ncols = 5
@@ -116,8 +133,7 @@ for ax in axes[num_sites:]:
 plt.tight_layout()
 plt.show()
 
-
-
+# Pytimetk way: 1 line of code, 1 groupby, 1 plot_timeseries
 
 df_pytimetk \
     .groupby('site_name') \
@@ -131,5 +147,13 @@ df_pytimetk \
         engine = 'plotly' # plotnine, plotly, or matplotlib
     )
     
-    
+# CONCLUSIONS ----
+# Pytimetk is a new package that makes time series analysis easy, fast, and fun.
+# It is built on top of Pandas, Polars, Plotnine, and Plotly.
+# Fewer lines of code
+# Faster execution
+# More beautiful visualizations
+# Pytimetk is currently in development.
+# More coming soon!
+  
     
